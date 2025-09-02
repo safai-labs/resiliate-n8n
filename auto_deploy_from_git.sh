@@ -77,15 +77,16 @@ if [ ! -f "${TARGET_DIR}/dist/nodes/ResiliateEvents/ResiliateEvents.node.js" ]; 
 fi
 
 # Check if Docker is running and n8n container exists
+cd "${N8N_DIR}"
 if ! docker compose ps -q n8n > /dev/null 2>&1; then
     echo "❌ Error: n8n container not found or Docker not running"
     echo "   Please ensure Docker is running and n8n container exists in ${N8N_DIR}"
+    cd "${CURRENT_DIR}"
     exit 1
 fi
 
 # Reinstall dependencies in the container
 echo "📚 Installing dependencies in n8n container..."
-cd "${N8N_DIR}"
 if ! docker compose exec n8n sh -c "cd /home/node/.n8n/nodes && npm install"; then
     echo "⚠️  Warning: Failed to install dependencies in container"
     echo "   The deployment files are in place, but you may need to manually restart n8n"
@@ -95,6 +96,7 @@ fi
 echo "🔄 Restarting n8n..."
 if ! docker compose restart n8n; then
     echo "❌ Failed to restart n8n container"
+    cd "${CURRENT_DIR}"
     exit 1
 fi
 

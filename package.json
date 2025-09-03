@@ -1,20 +1,31 @@
 {
   "name": "n8n-nodes-resiliate-events",
   "version": "0.1.0",
-  "description": "n8n node for Resiliate events",
+  "description": "n8n trigger node for Resiliate events and data resiliency monitoring",
   "keywords": [
-    "n8n-community-node-package"
+    "n8n-community-node-package",
+    "resiliate",
+    "saf.ai",
+    "data-resiliency",
+    "ransomware-protection",
+    "filesystem-events"
   ],
   "license": "MIT",
-  "homepage": "",
+  "homepage": "https://saf.ai/resiliate/n8n/",
   "author": {
-    "name": "",
-    "email": ""
+    "name": "Ahmed Masud",
+    "email": "ahmed.masud@saf.ai",
+    "url": "https://saf.ai"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:safai-labs/resiliate-n8n.git"
+    "url": "git@github.com:safai-labs/resiliate-n8n.git",
+    "homepage": "https://github.com/safai-labs/resiliate-n8n"
   },
+  "bugs": {
+    "url": "https://github.com/safai-labs/resiliate-n8n/issues"
+  },
+  "documentation": "https://docs.saf.ai/",
   "main": "index.js",
   "scripts": {
     "build": "tsc",
@@ -47,5 +58,8 @@
   },
   "dependencies": {
     "express": "^4.17.6"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   }
 }

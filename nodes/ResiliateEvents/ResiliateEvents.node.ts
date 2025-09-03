@@ -15,7 +15,7 @@ export class ResiliateEvents implements INodeType {
 		icon: 'file:ninja-icon.png',
 		group: ['trigger'],
 		version: 1,
-		description: 'Starts a workflow when a Resiliate event is received.',
+		description: "Starts a workflow when a Resiliate™ event is received. Part of the sāf.ai data resiliency platform.",,
 		defaults: {
 			name: 'Resiliate Events',
 		},

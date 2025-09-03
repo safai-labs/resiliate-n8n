@@ -3,7 +3,7 @@
 
 **Author:** Masud  
 **Project:** Resiliate Events n8n Node  
-**Learning Period:** 2024-2025  
+**Learning Period:** September 3, 2025  
 **Experience Level:** Introduction to vibe-coding methodology
 
 ## What is Vibe-Coding?

@@ -70,6 +70,25 @@ echo "📋 Copying files..."
 cp -r dist/* "${TARGET_DIR}/dist/"
 cp package.json "${TARGET_DIR}/"
 
+# Copy icon files (SVG, PNG) from source to deployment
+echo "🎨 Copying icon files..."
+find nodes/ -name "*.svg" -o -name "*.png" | while read icon_file; do
+    # Get the directory structure relative to nodes/
+    rel_path=${icon_file#nodes/}
+    target_path="${TARGET_DIR}/dist/nodes/${rel_path}"
+    target_dir=$(dirname "${target_path}")
+    
+    mkdir -p "${target_dir}"
+    cp "${icon_file}" "${target_path}"
+    echo "   Copied: ${icon_file} → ${target_path}"
+done
+
+# Copy any root-level icon files
+if [ -f "base-icon.png" ]; then
+    cp "base-icon.png" "${TARGET_DIR}/"
+    echo "   Copied: base-icon.png"
+fi
+
 # Verify files were copied correctly
 if [ ! -f "${TARGET_DIR}/dist/nodes/ResiliateEvents/ResiliateEvents.node.js" ]; then
     echo "❌ Deployment files not copied correctly!"
@@ -122,7 +141,7 @@ echo ""
 echo "📝 To test the node:"
 echo "1. Open n8n in your browser"
 echo "2. Create a new workflow"
-echo "3. Add a 'Resiliate Events' trigger node"
+echo "3. Add a 'Resiliate Events' trigger node (should now have custom icon!)"
 echo "4. Activate the workflow and test the webhook"
 echo ""
 echo "🔍 To check logs: cd ${N8N_DIR} && docker compose logs n8n"

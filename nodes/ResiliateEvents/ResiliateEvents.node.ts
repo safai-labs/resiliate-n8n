@@ -12,6 +12,7 @@ export class ResiliateEvents implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Resiliate Events',
 		name: 'resiliateEvents',
+		icon: 'file:resiliate-events.svg',
 		group: ['trigger'],
 		version: 1,
 		description: 'Starts a workflow when a Resiliate event is received.',

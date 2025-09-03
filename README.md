@@ -1,6 +1,6 @@
 # Resiliate Events n8n Node
 
-A custom n8n trigger node for receiving and processing Resiliate events via webhooks.
+A foundational n8n trigger node project for receiving Resiliate events via webhooks. **Version 0.1.0 is a basic setup providing core infrastructure and development workflow.**
 
 ## 🚀 Quick Start
 
@@ -26,11 +26,33 @@ cd /home/masud/projects/saf.ai/resiliate/n8n
 
 ## 📋 Overview
 
-This project provides a **ResiliateEvents** trigger node for n8n that:
-- ✅ Receives webhook events via HTTP POST
-- ✅ Processes JSON payloads
-- ✅ Forwards event data to n8n workflows
-- ✅ Supports development on macOS with deployment to Ubuntu
+This project provides the **foundational infrastructure** for a ResiliateEvents trigger node in n8n.
+
+### ⚠️ **Current Status - Version 0.1.0**
+
+**What's Included (Core Setup):**
+- ✅ Basic n8n trigger node framework
+- ✅ TypeScript development environment  
+- ✅ Cross-platform development workflow (macOS → Ubuntu)
+- ✅ Automated deployment scripts
+- ✅ Docker integration with existing n8n instance
+- ✅ Custom ninja icon integration
+- ✅ Git Flow version control setup
+- ✅ Comprehensive documentation and guides
+
+**What's NOT Implemented Yet:**
+- ❌ **Event Processing Logic**: Basic webhook receiver only, no event-specific processing
+- ❌ **Resiliate API Integration**: No actual connection to Resiliate services
+- ❌ **Advanced Filtering**: No event filtering or routing logic
+- ❌ **Error Handling**: Minimal error handling and retry mechanisms
+- ❌ **Authentication**: No API authentication or security features
+- ❌ **Event Transformation**: No data transformation or enrichment
+- ❌ **Monitoring/Logging**: No advanced monitoring or logging features
+
+**Current Functionality:**
+- Receives HTTP POST webhooks
+- Forwards raw JSON payload to n8n workflows
+- Basic webhook endpoint functionality
 
 ## 🏗️ Architecture
 
@@ -45,18 +67,21 @@ This project provides a **ResiliateEvents** trigger node for n8n that:
 resiliate-n8n/
 ├── nodes/
 │   └── ResiliateEvents/
-│       └── ResiliateEvents.node.ts        # Main trigger node implementation
+│       ├── ResiliateEvents.node.ts        # Basic trigger node implementation
+│       └── ninja-icon.png                 # Custom ninja icon
 ├── credentials/
-│   └── ResiliateEventsApi.credentials.ts  # API credentials (optional)
+│   └── ResiliateEventsApi.credentials.ts  # Placeholder credentials
 ├── scripts/
 │   ├── deploy_to_n8n.sh                   # Manual deployment
 │   ├── auto_deploy_from_git.sh           # Git-based auto-deployment
 │   └── test_resiliate_webhook.sh         # Testing and verification
+├── assets/                               # Ninja icon assets
 ├── docs/
 │   ├── DEVELOPMENT_WORKFLOW.md           # Complete development guide
 │   └── MACOS_SETUP.md                   # macOS setup instructions
 ├── package.json                         # Project configuration
 ├── tsconfig.json                        # TypeScript configuration
+├── CHANGELOG.md                         # Version history
 └── README.md                           # This file
 ```
 
@@ -123,7 +148,7 @@ cd /home/masud/projects/saf.ai/resiliate/n8n
 3. Search for "Resiliate Events" in node picker
 4. Add the trigger node to your workflow
 
-### 2. Test Webhook Endpoint
+### 2. Test Basic Webhook Functionality
 ```bash
 # Get webhook URL from n8n UI, then test:
 curl -X POST [WEBHOOK_URL] \
@@ -131,24 +156,28 @@ curl -X POST [WEBHOOK_URL] \
      -d '{"event": "test", "data": {"message": "Hello from Resiliate!"}}'
 ```
 
+**Expected Result:** Raw JSON payload forwarded to n8n workflow (no processing applied).
+
 ## 📚 Documentation
 
 - **[DEVELOPMENT_WORKFLOW.md](DEVELOPMENT_WORKFLOW.md)** - Complete development workflow guide
 - **[MACOS_SETUP.md](MACOS_SETUP.md)** - macOS environment setup instructions
+- **[CHANGELOG.md](CHANGELOG.md)** - Version history and release notes
 
-## 🌟 Features
+## 🌟 Version 0.1.0 - Core Infrastructure
 
-### ResiliateEvents Trigger Node
-- **Webhook-based**: Receives HTTP POST requests
-- **JSON Processing**: Handles structured event data
-- **Workflow Integration**: Seamlessly forwards data to n8n workflows
-- **Modern n8n API**: Built with latest n8n node development standards
+### What This Release Provides
+- **🏗️ Development Framework**: Complete TypeScript project setup
+- **🔄 Deployment Pipeline**: Automated cross-platform deployment
+- **🐳 Docker Integration**: Seamless container deployment
+- **🥷 Visual Identity**: Custom ninja icon integration
+- **📖 Documentation**: Comprehensive development guides
+- **🔀 Version Control**: Git Flow workflow implementation
 
-### Development Features
-- **TypeScript**: Full type safety and modern JavaScript features
-- **Hot Reload**: Watch mode for rapid development
-- **Automated Deployment**: One-command deployment from git
-- **Cross-platform**: Develop on macOS, deploy on Ubuntu
+### What This Release Does NOT Provide
+- **No Business Logic**: Basic webhook receiver only
+- **No Resiliate Integration**: Placeholder for future API connections
+- **No Advanced Features**: Event processing, filtering, authentication, etc.
 
 ## 🔧 Configuration
 
@@ -158,8 +187,8 @@ curl -X POST [WEBHOOK_URL] \
 - **Custom Nodes Path**: `/home/node/.n8n/nodes/`
 
 ### Git Branches
-- **`main`**: Production-ready releases
-- **`next`**: Development branch (default for development)
+- **`main`**: Production-ready releases (currently v0.1.0)
+- **`next`**: Development branch for v0.2.0+ features
 - **Feature branches**: Merge to `next` via PR
 
 ## 🚨 Troubleshooting
@@ -198,6 +227,26 @@ docker compose logs n8n --tail 50
 curl -s -f http://192.168.1.161:5678/healthz
 ```
 
+## 🗺️ Roadmap
+
+### Version 0.2.0 (Planned)
+- Resiliate API integration
+- Event authentication and validation
+- Basic event processing and transformation
+- Error handling and retry logic
+
+### Version 0.3.0 (Planned) 
+- Advanced event filtering and routing
+- Enhanced monitoring and logging
+- Performance optimizations
+- Extended documentation
+
+### Future Versions
+- Advanced Resiliate service integrations
+- Event enrichment and correlation
+- Scalability improvements
+- Enterprise features
+
 ## 🤝 Contributing
 
 1. Fork the repository
@@ -220,4 +269,4 @@ For issues or questions:
 
 ---
 
-**Happy coding! 🎉**
+**Version 0.1.0**: Core infrastructure and development workflow foundation. Ready for feature development in v0.2.0+ 🎉🥷

@@ -1,0 +1,533 @@
+#!/bin/sh
+##
+##  GNU shtool -- The GNU Portable Shell Tool
+##  Copyright (c) 1994-2008 Ralf S. Engelschall <rse@engelschall.com>
+##
+##  See http://www.gnu.org/software/shtool/ for more information.
+##  See ftp://ftp.gnu.org/gnu/shtool/ for latest version.
+##
+##  Version:  2.0.8 (18-Jul-2008)
+##  Contents: 1/19 available modules
+##
+
+##
+##  This program is free software; you can redistribute it and/or modify
+##  it under the terms of the GNU General Public License as published by
+##  the Free Software Foundation; either version 2 of the License, or
+##  (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU
+##  General Public License for more details.
+##
+##  You should have received a copy of the GNU General Public License
+##  along with this program; if not, write to the Free Software
+##  Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307,
+##  USA, or contact Ralf S. Engelschall <rse@engelschall.com>.
+##
+##  NOTICE: Given that you include this file verbatim into your own
+##  source tree, you are justified in saying that it remains separate
+##  from your package, and that this way you are simply just using GNU
+##  shtool. So, in this situation, there is no requirement that your
+##  package itself is licensed under the GNU General Public License in
+##  order to take advantage of GNU shtool.
+##
+
+##
+##  Usage: shtool [<options>] [<cmd-name> [<cmd-options>] [<cmd-args>]]
+##
+##  Available commands:
+##    mkshadow   Make a shadow tree through symbolic links
+##
+##  Not available commands (because module was not built-in):
+##    echo       Print string with optional construct expansion
+##    mdate      Pretty-print modification time of a file or dir
+##    table      Pretty-print a field-separated list as a table
+##    prop       Display progress with a running propeller
+##    move       Move files with simultaneous substitution
+##    install    Install a program, script or datafile
+##    mkdir      Make one or more directories
+##    mkln       Make link with calculation of relative paths
+##    fixperm    Fix file permissions inside a source tree
+##    rotate     Logfile rotation
+##    tarball    Roll distribution tarballs
+##    subst      Apply sed(1) substitution operations
+##    platform   Platform Identification Utility
+##    arx        Extended archive command
+##    slo        Separate linker options by library class
+##    scpp       Sharing C Pre-Processor
+##    version    Maintain a version information file
+##    path       Deal with program paths
+##
+
+#   maximum Bourne-Shell compatibility
+if [ ".$ZSH_VERSION" != . ] && (emulate sh) >/dev/null 2>&1; then
+    #   reconfigure zsh(1)
+    emulate sh
+    NULLCMD=:
+    alias -g '${1+"$@"}'='"$@"'
+elif [ ".$BASH_VERSION" != . ] && (set -o posix) >/dev/null 2>&1; then
+    #   reconfigure bash(1)
+    set -o posix
+fi
+
+#   maximum independence of NLS nuisances
+for var in \
+    LANG LANGUAGE LC_ADDRESS LC_ALL LC_COLLATE LC_CTYPE LC_IDENTIFICATION \
+    LC_MEASUREMENT LC_MESSAGES LC_MONETARY LC_NAME LC_NUMERIC LC_PAPER \
+    LC_TELEPHONE LC_TIME
+do
+    if (set +x; test -z "`(eval $var=C; export $var) 2>&1`"); then
+        eval $var=C; export $var
+    else
+        unset $var
+    fi
+done
+
+#   initial command line handling
+if [ $# -eq 0 ]; then
+    echo "$0:Error: invalid command line" 1>&2
+    echo "$0:Hint:  run \`$0 -h' for usage" 1>&2
+    exit 1
+fi
+if [ ".$1" = ".-h" ] || [ ".$1" = ".--help" ]; then
+    echo "This is GNU shtool, version 2.0.8 (18-Jul-2008)"
+    echo 'Copyright (c) 1994-2008 Ralf S. Engelschall <rse@engelschall.com>'
+    echo 'Report bugs to <bug-shtool@gnu.org>'
+    echo ''
+    echo 'Usage: shtool [<options>] [<cmd-name> [<cmd-options>] [<cmd-args>]]'
+    echo ''
+    echo 'Available global <options>:'
+    echo '  -v, --version   display shtool version information'
+    echo '  -h, --help      display shtool usage help page (this one)'
+    echo '  -d, --debug     display shell trace information'
+    echo '  -r, --recreate  recreate this shtool script via shtoolize'
+    echo ''
+    echo 'Available <cmd-name> [<cmd-options>] [<cmd-args>]:'
+    echo '  mkshadow [-v|--verbose] [-t|--trace] [-a|--all] <src-dir> <dst-dir>'
+    echo ''
+    echo 'Not available <cmd-name> (because module was not built-in):'
+    echo '  echo     [-n|--newline] [-e|--expand] [<string> ...]'
+    echo '  mdate    [-n|--newline] [-z|--zero] [-s|--shorten] [-d|--digits]'
+    echo '           [-f|--field-sep <str>] [-o|--order <spec>] <path>'
+    echo '  table    [-F|--field-sep <sep>] [-w|--width <width>] [-c|--columns'
+    echo '           <cols>] [-s|--strip <strip>] <str><sep><str>...'
+    echo '  prop     [-p|--prefix <str>]'
+    echo '  move     [-v|--verbose] [-t|--trace] [-e|--expand] [-p|--preserve]'
+    echo '           <src-file> <dst-file>'
+    echo '  install  [-v|--verbose] [-t|--trace] [-d|--mkdir] [-c|--copy]'
+    echo '           [-C|--compare-copy] [-s|--strip] [-m|--mode <mode>]'
+    echo '           [-o|--owner <owner>] [-g|--group <group>] [-e|--exec'
+    echo '           <sed-cmd>] <file> [<file> ...] <path>'
+    echo '  mkdir    [-t|--trace] [-f|--force] [-p|--parents] [-m|--mode'
+    echo '           <mode>] [-o|--owner <owner>] [-g|--group <group>] <dir>'
+    echo '           [<dir> ...]'
+    echo '  mkln     [-t|--trace] [-f|--force] [-s|--symbolic] <src-path>'
+    echo '           [<src-path> ...] <dst-path>'
+    echo '  fixperm  [-v|--verbose] [-t|--trace] <path> [<path> ...]'
+    echo '  rotate   [-v|--verbose] [-t|--trace] [-f|--force] [-n|--num-files'
+    echo '           <count>] [-s|--size <size>] [-c|--copy] [-r|--remove]'
+    echo '           [-a|--archive-dir <dir>] [-z|--compress [<tool>:]<level>]'
+    echo '           [-b|--background] [-d|--delay] [-p|--pad <len>] [-m|--mode'
+    echo '           <mode>] [-o|--owner <owner>] [-g|--group <group>] [-M|--migrate'
+    echo '           <cmd>] [-P|--prolog <cmd>] [-E|--epilog <cmd>] <file> [...]'
+    echo '  tarball  [-t|--trace] [-v|--verbose] [-o|--output <tarball>]'
+    echo '           [-c|--compress <prog>] [-d|--directory <dir>] [-u|--user'
+    echo '           <user>] [-g|--group <group>] [-e|--exclude <pattern>]'
+    echo '           <path> [<path> ...]'
+    echo '  subst    [-v|--verbose] [-t|--trace] [-n|--nop] [-w|--warning]'
+    echo '           [-q|--quiet] [-s|--stealth] [-i|--interactive] [-b|--backup'
+    echo '           <ext>] [-e|--exec <cmd>] [-f|--file <cmd-file>] [<file>]'
+    echo '           [...]'
+    echo '  platform [-F|--format <format>] [-S|--sep <string>] [-C|--conc'
+    echo '           <string>] [-L|--lower] [-U|--upper] [-v|--verbose]'
+    echo '           [-c|--concise] [-n|--no-newline] [-t|--type <type>]'
+    echo '           [-V|--version] [-h|--help]'
+    echo '  arx      [-t|--trace] [-C|--command <cmd>] <op> <archive> [<file>'
+    echo '           ...]'
+    echo '  slo      [-p|--prefix <str>] -- -L<dir> -l<lib> [-L<dir> -l<lib>'
+    echo '           ...]'
+    echo '  scpp     [-v|--verbose] [-p|--preserve] [-f|--filter <filter>]'
+    echo '           [-o|--output <ofile>] [-t|--template <tfile>] [-M|--mark'
+    echo '           <mark>] [-D|--define <dname>] [-C|--class <cname>]'
+    echo '           <file> [<file> ...]'
+    echo '  version  [-l|--language <lang>] [-n|--name <name>] [-p|--prefix'
+    echo '           <prefix>] [-s|--set <version>] [-e|--edit] [-i|--increase'
+    echo '           <knob>] [-d|--display <type>] <file>'
+    echo '  path     [-s|--suppress] [-r|--reverse] [-d|--dirname] [-b|--basename]'
+    echo '           [-m|--magic] [-p|--path <path>] <str> [<str> ...]'
+    echo ''
+    exit 0
+fi
+if [ ".$1" = ".-v" ] || [ ".$1" = ".--version" ]; then
+    echo "GNU shtool 2.0.8 (18-Jul-2008)"
+    exit 0
+fi
+if [ ".$1" = ".-r" ] || [ ".$1" = ".--recreate" ]; then
+    shtoolize -omkshadow mkshadow
+    exit 0
+fi
+if [ ".$1" = ".-d" ] || [ ".$1" = ".--debug" ]; then
+    shift
+    set -x
+fi
+name=`echo "$0" | sed -e 's;.*/\([^/]*\)$;\1;' -e 's;-sh$;;' -e 's;\.sh$;;'`
+case "$name" in
+    mkshadow )
+        #   implicit tool command selection
+        tool="$name"
+        ;;
+    * )
+        #   explicit tool command selection
+        tool="$1"
+        shift
+        ;;
+esac
+arg_spec=""
+opt_spec=""
+gen_tmpfile=no
+
+##
+##  DISPATCH INTO SCRIPT PROLOG
+##
+
+case $tool in
+    mkshadow )
+        str_tool="mkshadow"
+        str_usage="[-v|--verbose] [-t|--trace] [-a|--all] <src-dir> <dst-dir>"
+        arg_spec="2="
+        opt_spec="v.t.a."
+        opt_alias="v:verbose,t:trace,a:all"
+        opt_v=no
+        opt_t=no
+        opt_a=no
+        ;;
+    -* )
+        echo "$0:Error: unknown option \`$tool'" 2>&1
+        echo "$0:Hint:  run \`$0 -h' for usage" 2>&1
+        exit 1
+        ;;
+    * )
+        echo "$0:Error: unknown command \`$tool'" 2>&1
+        echo "$0:Hint:  run \`$0 -h' for usage" 2>&1
+        exit 1
+        ;;
+esac
+
+##
+##  COMMON UTILITY CODE
+##
+
+#   commonly used ASCII values
+ASC_TAB="	"
+ASC_NL="
+"
+
+#   determine name of tool
+if [ ".$tool" != . ]; then
+    #   used inside shtool script
+    toolcmd="$0 $tool"
+    toolcmdhelp="shtool $tool"
+    msgprefix="shtool:$tool"
+else
+    #   used as standalone script
+    toolcmd="$0"
+    toolcmdhelp="sh $0"
+    msgprefix="$str_tool"
+fi
+
+#   parse argument specification string
+eval `echo $arg_spec |\
+      sed -e 's/^\([0-9]*\)\([+=]\)/arg_NUMS=\1; arg_MODE=\2/'`
+
+#   parse option specification string
+eval `echo h.$opt_spec |\
+      sed -e 's/\([a-zA-Z0-9]\)\([.:+]\)/opt_MODE_\1=\2;/g'`
+
+#   parse option alias string
+eval `echo h:help,$opt_alias |\
+      sed -e 's/-/_/g' -e 's/\([a-zA-Z0-9]\):\([^,]*\),*/opt_ALIAS_\2=\1;/g'`
+
+#   interate over argument line
+opt_PREV=''
+while [ $# -gt 0 ]; do
+    #   special option stops processing
+    if [ ".$1" = ".--" ]; then
+        shift
+        break
+    fi
+
+    #   determine option and argument
+    opt_ARG_OK=no
+    if [ ".$opt_PREV" != . ]; then
+        #   merge previous seen option with argument
+        opt_OPT="$opt_PREV"
+        opt_ARG="$1"
+        opt_ARG_OK=yes
+        opt_PREV=''
+    else
+        #   split argument into option and argument
+        case "$1" in
+            --[a-zA-Z0-9]*=*)
+                eval `echo "x$1" |\
+                      sed -e 's/^x--\([a-zA-Z0-9-]*\)=\(.*\)$/opt_OPT="\1";opt_ARG="\2"/'`
+                opt_STR=`echo $opt_OPT | sed -e 's/-/_/g'`
+                eval "opt_OPT=\${opt_ALIAS_${opt_STR}-${opt_OPT}}"
+                ;;
+            --[a-zA-Z0-9]*)
+                opt_OPT=`echo "x$1" | cut -c4-`
+                opt_STR=`echo $opt_OPT | sed -e 's/-/_/g'`
+                eval "opt_OPT=\${opt_ALIAS_${opt_STR}-${opt_OPT}}"
+                opt_ARG=''
+                ;;
+            -[a-zA-Z0-9]*)
+                eval `echo "x$1" |\
+                      sed -e 's/^x-\([a-zA-Z0-9]\)/opt_OPT="\1";/' \
+                          -e 's/";\(.*\)$/"; opt_ARG="\1"/'`
+                ;;
+            -[a-zA-Z0-9])
+                opt_OPT=`echo "x$1" | cut -c3-`
+                opt_ARG=''
+                ;;
+            *)
+                break
+                ;;
+        esac
+    fi
+
+    #   eat up option
+    shift
+
+    #   determine whether option needs an argument
+    eval "opt_MODE=\$opt_MODE_${opt_OPT}"
+    if [ ".$opt_ARG" = . ] && [ ".$opt_ARG_OK" != .yes ]; then
+        if [ ".$opt_MODE" = ".:" ] || [ ".$opt_MODE" = ".+" ]; then
+            opt_PREV="$opt_OPT"
+            continue
+        fi
+    fi
+
+    #   process option
+    case $opt_MODE in
+        '.' )
+            #   boolean option
+            eval "opt_${opt_OPT}=yes"
+            ;;
+        ':' )
+            #   option with argument (multiple occurances override)
+            eval "opt_${opt_OPT}=\"\$opt_ARG\""
+            ;;
+        '+' )
+            #   option with argument (multiple occurances append)
+            eval "opt_${opt_OPT}=\"\$opt_${opt_OPT}\${ASC_NL}\$opt_ARG\""
+            ;;
+        * )
+            echo "$msgprefix:Error: unknown option: \`$opt_OPT'" 1>&2
+            echo "$msgprefix:Hint:  run \`$toolcmdhelp -h' or \`man shtool' for details" 1>&2
+            exit 1
+            ;;
+    esac
+done
+if [ ".$opt_PREV" != . ]; then
+    echo "$msgprefix:Error: missing argument to option \`$opt_PREV'" 1>&2
+    echo "$msgprefix:Hint:  run \`$toolcmdhelp -h' or \`man shtool' for details" 1>&2
+    exit 1
+fi
+
+#   process help option
+if [ ".$opt_h" = .yes ]; then
+    echo "Usage: $toolcmdhelp $str_usage"
+    exit 0
+fi
+
+#   complain about incorrect number of arguments
+case $arg_MODE in
+    '=' )
+        if [ $# -ne $arg_NUMS ]; then
+            echo "$msgprefix:Error: invalid number of arguments (exactly $arg_NUMS expected)" 1>&2
+            echo "$msgprefix:Hint:  run \`$toolcmd -h' or \`man shtool' for details" 1>&2
+            exit 1
+        fi
+        ;;
+    '+' )
+        if [ $# -lt $arg_NUMS ]; then
+            echo "$msgprefix:Error: invalid number of arguments (at least $arg_NUMS expected)" 1>&2
+            echo "$msgprefix:Hint:  run \`$toolcmd -h' or \`man shtool' for details" 1>&2
+            exit 1
+        fi
+        ;;
+esac
+
+#   establish a temporary file on request
+if [ ".$gen_tmpfile" = .yes ]; then
+    #   create (explicitly) secure temporary directory
+    if [ ".$TMPDIR" != . ]; then
+        tmpdir="$TMPDIR"
+    elif [ ".$TEMPDIR" != . ]; then
+        tmpdir="$TEMPDIR"
+    else
+        tmpdir="/tmp"
+    fi
+    tmpdir="$tmpdir/.shtool.$$"
+    ( umask 077
+      rm -rf "$tmpdir" >/dev/null 2>&1 || true
+      mkdir  "$tmpdir" >/dev/null 2>&1
+      if [ $? -ne 0 ]; then
+          echo "$msgprefix:Error: failed to create temporary directory \`$tmpdir'" 1>&2
+          exit 1
+      fi
+    )
+
+    #   create (implicitly) secure temporary file
+    tmpfile="$tmpdir/shtool.tmp"
+    touch "$tmpfile"
+fi
+
+#   utility function: map string to lower case
+util_lower () {
+    echo "$1" | tr 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' 'abcdefghijklmnopqrstuvwxyz'
+}
+
+#   utility function: map string to upper case
+util_upper () {
+    echo "$1" | tr 'abcdefghijklmnopqrstuvwxyz' 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+}
+
+#   cleanup procedure
+shtool_exit () {
+    rc="$1"
+    if [ ".$gen_tmpfile" = .yes ]; then
+        rm -rf "$tmpdir" >/dev/null 2>&1 || true
+    fi
+    exit $rc
+}
+
+##
+##  DISPATCH INTO SCRIPT BODY
+##
+
+case $tool in
+
+mkshadow )
+    ##
+    ##  mkshadow -- Make a shadow tree through symbolic links
+    ##  Copyright (c) 1998-2008 Ralf S. Engelschall <rse@engelschall.com>
+    ##
+
+    #   source and destination directory
+    src=`echo "$1" | sed -e 's:/$::' -e 's:^\./\(.\):\1:'`
+    dst=`echo "$2" | sed -e 's:/$::' -e 's:^\./\(.\):\1:'`
+
+    #   check whether source exists
+    if [ ! -d $src ]; then
+        echo "$msgprefix:Error: source directory not found: \`$src'" 1>&2
+        shtool_exit 1
+    fi
+
+    #   determine if one of the paths is an absolute path,
+    #   because then we have to use an absolute symlink
+    oneisabs=0
+    case $src in
+        /* ) oneisabs=1 ;;
+    esac
+    case $dst in
+        /* ) oneisabs=1 ;;
+    esac
+
+    #   determine reverse directory for destination directory
+    dstrevdir=''
+    if [ $oneisabs = 0 ]; then
+        #   derive reverse path from forward path
+        pwd=`pwd`
+        OIFS="$IFS"; IFS='/'
+        for pe in $dst; do
+            if [ "x$pe" = "x.." ]; then
+                OIFS2="$IFS"; IFS="$DIFS"
+                eval `echo "$pwd" |\
+                      sed -e 's:\([^/]*\)$:; dir="\1":' \
+                          -e 's:^\(.*\)/[^/]*;:pwd="\1";:'\
+                          -e 's:^;:pwd="";:'`
+                dstrevdir="$dir/$dstrevdir"
+                IFS="$OIFS2"
+            else
+                dstrevdir="../$dstrevdir"
+            fi
+        done
+        IFS="$OIFS"
+    else
+        src="`cd $src; pwd`";
+    fi
+
+    #   create directory tree at destination
+    if [ ! -d $dst ]; then
+        if [ ".$opt_t" = .yes ]; then
+            echo "mkdir $dst" 1>&2
+        fi
+        mkdir $dst
+    fi
+    if [ ".$opt_a" = .yes ]; then
+        DIRS=`cd $src; find . -type d -print |\
+              sed -e '/^\.$/d' -e 's:^\./::'`
+    else
+        DIRS=`cd $src; find . -type d -print |\
+              sed -e '/\/CVS/d' -e '/^\.$/d' -e 's:^\./::'`
+    fi
+    for dir in $DIRS; do
+        if [ ".$opt_t" = .yes ]; then
+            echo "mkdir $dst/$dir" 1>&2
+        fi
+        mkdir $dst/$dir
+    done
+
+    #   fill directory tree with symlinks to files
+    if [ ".$opt_a" = .yes ]; then
+        FILES="`cd $src; find . -depth -print |\
+                sed -e 's/^\.\///'`"
+    else
+        FILES="`cd $src; find . -depth -print |\
+                sed -e '/\.o$/d' -e '/\.a$/d' -e '/\.so$/d' \
+                    -e '/\.cvsignore$/d' -e '/\/CVS/d' \
+                    -e '/\/\.#/d' -e '/\.orig$/d' \
+                    -e 's/^\.\///'`"
+    fi
+    for file in $FILES; do
+         #  don't use `-type f' above for find because of symlinks
+         if [ -d "$src/$file" ]; then
+             continue
+         fi
+         basename=`echo $file | sed -e 's:^.*/::'`
+         dir=`echo $file | sed -e 's:[^/]*$::' -e 's:/$::' -e 's:$:/:' -e 's:^/$::'`
+         from=`echo "$src/$file" | sed -e 's/^\.\///'`
+         to="$dst/$dir$basename"
+         if [ $oneisabs = 0 ]; then
+             if [ ".$dir" != . ]; then
+                 subdir=`echo $dir | sed -e 's:/$::'`
+                 #   derive reverse path from forward path
+                 revdir=''
+                 OIFS="$IFS"; IFS='/'
+                 for pe in $subdir; do
+                     revdir="../$revdir"
+                 done
+                 IFS="$OIFS"
+                 #   finalize from
+                 from="$revdir$from"
+             fi
+             from="$dstrevdir$from"
+         fi
+         if [ ".$opt_v" = .yes ]; then
+             echo "    $to" 1>&2
+         fi
+         if [ ".$opt_t" = .yes ]; then
+             echo "ln -s $from $to" 1>&2
+         fi
+         ln -s $from $to
+    done
+
+    shtool_exit 0
+    ;;
+
+esac
+
+shtool_exit 0
+

@@ -114,3 +114,4 @@ Thumbs.db
 # Package lock files (if using yarn)
 # package-lock.json
 
+*.backup
